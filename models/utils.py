@@ -48,13 +48,13 @@ def get_model(model_type: str, dataset_name: str, configs: dict):
         torch.nn.Module or PreTrainedModel: An instance of the specified model, ready for training or inference.
     """
     if model_type == "gpt2":
-        if configs.get("peft_type", None) is None:
-            return AutoModelForCausalLM.from_pretrained(model_type)
-        else:
-            peft_config = get_peft_model_config(configs)
-            return get_peft_model(
-                AutoModelForCausalLM.from_pretrained(model_type), peft_config
-            )
+        # if configs.get("peft_type", None) is None:
+        #     return AutoModelForCausalLM.from_pretrained(model_type)
+        # else:
+        peft_config = get_peft_model_config(configs)
+        return get_peft_model(
+            AutoModelForCausalLM.from_pretrained(model_type), peft_config
+        )
 
     num_classes = INPUT_OUTPUT_SHAPE[dataset_name][1]
     in_shape = INPUT_OUTPUT_SHAPE[dataset_name][0]
@@ -380,7 +380,8 @@ def prepare_models(
 
         if model_name == "gpt2":
             hf_dataset = dataset.hf_dataset
-            if configs.get("peft_type", None) is None:
+            # if configs.get("peft_type", None) is None:
+            if configs["train"]["peft"]["type"] is None:
                 model, train_loss, test_loss = train_transformer(
                     hf_dataset.select(split_info["train"]),
                     get_model(model_name, dataset_name, configs),
