@@ -16,7 +16,7 @@ train: # Configuration for training
   model_name: gpt2 # String for indicating the model type. We support CNN, wrn28-1, wrn28-2, wrn28-10, vgg16, mlp, gpt2 and speedyresnet (requires cuda). More model types can be added in model.py.
   tokenizer: gpt2 # String for indicating the tokenizer type. It can be any tokenizer or local checkpoint supported by the transformers library.
   device: cuda:0 # String for indicating the device we want to use for training models.
-  batch_size: 8
+  batch_size: 16
   learning_rate: 0.00005
   weight_decay: 0.01
   epochs: 1
@@ -24,7 +24,7 @@ train: # Configuration for training
   peft: # configuration for peft
     type: lora # Specify finetuning method
     fan_in_fan_out: True
-    r: 16
+    r: 4
     target_modules: ["c_attn", "c_proj", "c_fc"]
 
 
