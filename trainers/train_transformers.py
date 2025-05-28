@@ -8,6 +8,8 @@ from transformers import (
     TrainingArguments,
 )
 
+_tokenizer_cache: dict[str, AutoTokenizer] = {}
+
 
 def create_training_args(configs: Dict) -> TrainingArguments:
     """Creates and returns the training arguments for the transformer model."""
@@ -28,11 +30,13 @@ def create_training_args(configs: Dict) -> TrainingArguments:
         eval_strategy="epoch",
     )
 
-
-def setup_tokenizer(configs: Dict) -> AutoTokenizer:
+def setup_tokenizer(tokenizer_name: str) -> AutoTokenizer:
     """Loads the tokenizer and ensures pad token is set."""
+    if tokenizer_name in _tokenizer_cache:
+        return _tokenizer_cache[tokenizer_name]
+
     tokenizer = AutoTokenizer.from_pretrained(
-        configs["data"]["tokenizer"], clean_up_tokenization_spaces=True
+        tokenizer_name, clean_up_tokenization_spaces=True
     )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -40,6 +44,7 @@ def setup_tokenizer(configs: Dict) -> AutoTokenizer:
             "The tokenizer pad token is None. Setting it to the EOS token for padding. "
             "If this is not desired, please set the pad token manually."
         )
+    _tokenizer_cache[tokenizer_name] = tokenizer
     return tokenizer
 
 
@@ -51,7 +56,7 @@ def train_transformer(
         raise ValueError("The provided model is not a Hugging Face transformer model")
 
     training_args = create_training_args(configs)
-    tokenizer = setup_tokenizer(configs)
+    tokenizer = setup_tokenizer(configs["data"]["tokenizer"])
 
     trainer = Trainer(
         model=model,
@@ -89,18 +94,18 @@ def get_peft_model_config(configs: Dict) -> LoraConfig:
 
 
 def train_transformer_with_peft(
-    trainset, model: PreTrainedModel, configs: Dict, testset
+    trainset, peft_model, configs: Dict, testset
 ) -> Tuple[PreTrainedModel, float, float]:
     """Train a Hugging Face transformer model with PEFT (LoRA) modifications."""
-    if not isinstance(model, PreTrainedModel):
-        raise ValueError("The provided model is not a Hugging Face transformer model")
-
-    # Apply PEFT (LoRA) configuration
-    peft_config = get_peft_model_config(configs)
-    peft_model = get_peft_model(model, peft_config)
+    # if not isinstance(model, PreTrainedModel):
+    #     raise ValueError("The provided model is not a Hugging Face transformer model")
+    #
+    # # Apply PEFT (LoRA) configuration
+    # peft_config = get_peft_model_config(configs)
+    # peft_model = get_peft_model(model, peft_config)
 
     training_args = create_training_args(configs)
-    tokenizer = setup_tokenizer(configs)
+    tokenizer = setup_tokenizer(configs["data"]["tokenizer"])
 
     trainer = Trainer(
         model=peft_model,
