@@ -24,7 +24,7 @@ train: # Configuration for training
   peft: # configuration for peft
     type: lora # Specify finetuning method
     fan_in_fan_out: True
-    r: 4
+    r: 16
     target_modules: ["c_attn", "c_proj", "c_fc"]
 
 
