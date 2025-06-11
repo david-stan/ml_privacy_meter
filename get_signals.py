@@ -62,20 +62,24 @@ def get_softmax(
                     else torch.ones_like(y, dtype=torch.bool)
                 )
                 true_class_log_probs = true_class_log_probs * mask
+                # sequence_probs = torch.exp(
+                #     (true_class_log_probs * mask).sum(1) / mask.sum(1)
+                # )
+                ### should be without division by mask.sum(1):
                 sequence_probs = torch.exp(
-                    (true_class_log_probs * mask).sum(1) / mask.sum(1)
+                    true_class_log_probs.sum(1)
                 )
                 softmax_list.append(sequence_probs.to("cpu").view(-1, 1))
             else:
                 logit_signals = torch.div(pred, temp)
-                max_logit_signals, _ = torch.max(logit_signals, dim=1)
+                max_logit_signals, _ = torch.max(logit_signals, dim=1, keepdim=True)
                 # This is to avoid overflow when exp(logit_signals)
                 logit_signals = torch.sub(
-                    logit_signals, max_logit_signals.reshape(-1, 1)
+                    logit_signals, max_logit_signals
                 )
                 exp_logit_signals = torch.exp(logit_signals)
                 exp_logit_sum = exp_logit_signals.sum(dim=1).reshape(-1, 1)
-                true_exp_logit = exp_logit_signals.gather(1, y.reshape(-1, 1))
+                true_exp_logit = exp_logit_signals.gather(1, y.unsqueeze(-1)).squeeze(-1)
                 softmax_list.append(torch.div(true_exp_logit, exp_logit_sum).to("cpu"))
         all_softmax_list = np.concatenate(softmax_list)
     model.to("cpu")
