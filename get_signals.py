@@ -62,12 +62,8 @@ def get_softmax(
                     else torch.ones_like(y, dtype=torch.bool)
                 )
                 true_class_log_probs = true_class_log_probs * mask
-                # sequence_probs = torch.exp(
-                #     (true_class_log_probs * mask).sum(1) / mask.sum(1)
-                # )
-                ### should be without division by mask.sum(1):
                 sequence_probs = torch.exp(
-                    true_class_log_probs.sum(1)
+                    true_class_log_probs.sum(1) / mask.sum(1)
                 )
                 softmax_list.append(sequence_probs.to("cpu").view(-1, 1))
             else:

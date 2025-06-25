@@ -1,4 +1,7 @@
 from typing import Tuple, Dict
+import os
+import matplotlib.pyplot as plt
+import pandas as pd
 
 from peft import LoraConfig, get_peft_model, TaskType
 from transformers import (
@@ -26,8 +29,15 @@ def create_training_args(configs: Dict) -> TrainingArguments:
         weight_decay=configs["train"]["weight_decay"],
         learning_rate=configs["train"]["learning_rate"],
         save_strategy="no",
-        logging_strategy="epoch",
-        eval_strategy="epoch",
+        logging_strategy="steps",
+        eval_strategy="steps",
+        logging_steps=50,
+        eval_steps=50,
+        save_total_limit=1,
+        gradient_accumulation_steps=configs["train"].get(
+            "gradient_accumulation_steps", 1
+        ),
+        fp16=True,
     )
 
 def setup_tokenizer(tokenizer_name: str) -> AutoTokenizer:
@@ -48,8 +58,40 @@ def setup_tokenizer(tokenizer_name: str) -> AutoTokenizer:
     return tokenizer
 
 
+def logging(trainer, training_args, model_idx):
+    log_history = trainer.state.log_history
+    train_logs = [log for log in log_history if 'loss' in log and 'step' in log]
+    eval_logs = [log for log in log_history if 'eval_loss' in log and 'step' in log]
+
+    train_steps = [log['step'] for log in train_logs]
+    train_losses = [log['loss'] for log in train_logs]
+    eval_steps = [log['step'] for log in eval_logs]
+    eval_losses = [log['eval_loss'] for log in eval_logs]
+
+    output_dir = training_args.output_dir
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Create and save plot
+    plt.figure()
+    plt.plot(train_steps, train_losses, label="train_loss")
+    plt.plot(eval_steps, eval_losses, label="eval_loss")
+    plt.title("Training and Evaluation Loss History")
+    plt.xlabel("Steps")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.savefig(os.path.join(output_dir, f"loss_history_{model_idx}.png"))
+    plt.close()
+
+    # Save loss history to CSV for further analysis
+    train_df = pd.DataFrame({'step': train_steps, 'train_loss': train_losses})
+    eval_df = pd.DataFrame({'step': eval_steps, 'eval_loss': eval_losses})
+    loss_df = pd.merge(train_df, eval_df, on='step', how='outer').sort_values('step')
+    loss_df.to_csv(os.path.join(output_dir, f"loss_history_{model_idx}.csv"), index=False)
+
+
 def train_transformer(
-    trainset, model: PreTrainedModel, configs: Dict, testset
+    trainset, model: PreTrainedModel, configs: Dict, testset, model_idx
 ) -> Tuple[PreTrainedModel, float, float]:
     """Train a Hugging Face transformer model without any PEFT (LoRA) modifications."""
     if not isinstance(model, PreTrainedModel):
@@ -67,6 +109,9 @@ def train_transformer(
     )
 
     trainer.train()
+
+    logging(trainer, training_args, model_idx)
+
     train_loss = trainer.state.log_history[-1]["train_loss"]
     test_loss = trainer.state.log_history[-2]["eval_loss"]
 

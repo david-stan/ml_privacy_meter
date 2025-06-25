@@ -1,6 +1,6 @@
 run: # Configurations for a specific run
   random_seed: 12345 # Integer number of specifying random seed
-  log_dir: demo_agnews # String for indicating where to save all the information, including models and computed signals. We can reuse the models saved in the same log_dir.
+  log_dir: demo_agnews_epochs3 # String for indicating where to save all the information, including models and computed signals. We can reuse the models saved in the same log_dir.
   time_log: True # Indicate whether to log the time for each step
   num_experiments: 1 # Number of total experiments
 
@@ -18,11 +18,11 @@ train: # Configuration for training
   model_name: gpt2 # String for indicating the model type. We support CNN, wrn28-1, wrn28-2, wrn28-10, vgg16, mlp, gpt2 and speedyresnet (requires cuda). More model types can be added in model.py.
   tokenizer: gpt2 # String for indicating the tokenizer type. It can be any tokenizer or local checkpoint supported by the transformers library.
   device: cuda:0 # String for indicating the device we want to use for training models.
-  batch_size: 8
+  batch_size: 16
   auto_find_batch_size: False # When set to True, the batch size will be automatically set by the trainer according to the hardware's capability. Recommended for less powerful GPUs
-  learning_rate: 0.00005
+  learning_rate: 0.000001
   weight_decay: 0.01
-  epochs: 1
+  epochs: 3
   optimizer: adamw_torch
 #  peft: # configuration for peft
 #    type: lora # Specify finetuning method
