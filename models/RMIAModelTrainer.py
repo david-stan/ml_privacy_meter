@@ -100,13 +100,12 @@ class RMIAModelTrainer:
             baseline_time = time.time()
             self.logger.info(50 * "-")
             self.logger.info(
-                f"Training model {split}: Train size {len(split_info['train'])}, Test size {len(split_info['test'])}"
+                f"Training model {split}: Train size {len(split_info['train'])}, Test size {max(len(split_info['test']), 1000)}"
             )
 
             model_name = self.configs["train"]["model_name"]
             dataset_name = self.configs["data"]["dataset"]
             batch_size = self.configs["train"]["batch_size"]
-            device = self.configs["train"]["device"]
 
             train_configs = self.configs["train"]
 
@@ -117,7 +116,8 @@ class RMIAModelTrainer:
                         hf_dataset.select(split_info["train"]),
                         get_model(model_name, dataset_name, self.configs),
                         self.configs,
-                        hf_dataset.select(split_info["test"]),
+                        hf_dataset.select(split_info["test"][:1000]),
+                        model_idx=split
                     )
                 else:
                     model, train_loss, test_loss = train_transformer_with_peft(
