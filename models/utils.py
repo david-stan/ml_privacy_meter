@@ -387,7 +387,7 @@ def prepare_models(
                     hf_dataset.select(split_info["train"]),
                     get_model(model_name, dataset_name, configs),
                     configs,
-                    hf_dataset.select(split_info["test"]),
+                    hf_dataset.select(split_info["test"][:1000]),
                     split,
                 )
             else:
