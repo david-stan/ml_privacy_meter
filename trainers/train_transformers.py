@@ -144,32 +144,3 @@ def get_peft_model_config(configs: Dict) -> LoraConfig:
         )
     else:
         raise NotImplementedError("Only LoRA is supported in this implementation.")
-
-
-def train_transformer_with_peft(
-    trainset, peft_model, configs: Dict, testset
-) -> Tuple[PreTrainedModel, float, float]:
-    """Train a Hugging Face transformer model with PEFT (LoRA) modifications."""
-    # if not isinstance(model, PreTrainedModel):
-    #     raise ValueError("The provided model is not a Hugging Face transformer model")
-    #
-    # # Apply PEFT (LoRA) configuration
-    # peft_config = get_peft_model_config(configs)
-    # peft_model = get_peft_model(model, peft_config)
-
-    training_args = create_training_args(configs, model_idx)
-    tokenizer = setup_tokenizer(configs["data"]["tokenizer"])
-
-    trainer = Trainer(
-        model=peft_model,
-        args=training_args,
-        train_dataset=trainset,
-        eval_dataset=testset,
-        tokenizer=tokenizer,
-    )
-
-    trainer.train()
-    train_loss = trainer.state.log_history[-1]["train_loss"]
-    test_loss = trainer.state.log_history[-2]["eval_loss"]
-
-    return peft_model, train_loss, test_loss
