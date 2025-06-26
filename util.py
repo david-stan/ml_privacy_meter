@@ -103,12 +103,13 @@ def load_dataset(configs: Dict[str, Any], data_dir: str, logger: logging.Logger)
     """
     if not configs["data"].get("tokenize", False):
         dataset, population = get_dataset(configs["data"]["dataset"], data_dir, logger)
-    dataset, population = get_dataset(
-        configs["data"]["dataset"],
-        data_dir,
-        logger,
-        tokenizer=configs["data"].get("tokenizer", configs["train"]["model_name"]),
-    )
+    else:
+        dataset, population = get_dataset(
+            configs["data"]["dataset"],
+            data_dir,
+            logger,
+            tokenizer=configs["data"].get("tokenizer", configs["train"]["model_name"]),
+        )
 
     num_samples = configs["train"].get("num_samples", None)
     if num_samples is not None and num_samples < len(dataset):
