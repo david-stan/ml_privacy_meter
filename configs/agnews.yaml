@@ -19,19 +19,15 @@ train: # Configuration for training
   tokenizer: gpt2 # String for indicating the tokenizer type. It can be any tokenizer or local checkpoint supported by the transformers library.
   device: cuda:0 # String for indicating the device we want to use for training models.
   batch_size: 16
-  auto_find_batch_size: False # When set to True, the batch size will be automatically set by the trainer according to the hardware's capability. Recommended for less powerful GPUs
+  auto_find_batch_size: True # When set to True, the batch size will be automatically set by the trainer according to the hardware's capability. Recommended for less powerful GPUs
   learning_rate: 0.000001
   weight_decay: 0.01
   epochs: 1
   optimizer: adamw_torch
   save_checkpoints: True
+  restart_from_checkpoint: True
   eval_steps: 50
   num_samples: 50000
-#  peft: # configuration for peft
-#    type: lora # Specify finetuning method
-#    fan_in_fan_out: True
-#    r: 16
-#    target_modules: ["c_attn", "c_proj", "c_fc"]
 
 
 data: # Configuration for data

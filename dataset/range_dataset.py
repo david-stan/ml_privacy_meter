@@ -113,7 +113,7 @@ class RangeDataset(Dataset):
         self.config = config
         self.tokenizer = (
             AutoTokenizer.from_pretrained(self.config["data"]["tokenizer"])
-            if self.config["data"].get("tokenizer", None) is not None
+            if self.config["data"]["tokenizer"] is not None
             else None
         )
 
