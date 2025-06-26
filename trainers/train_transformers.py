@@ -6,7 +6,7 @@ import pandas as pd
 from pathlib import Path
 
 import torch
-from peft import LoraConfig, get_peft_model, TaskType
+from peft import LoraConfig, get_peft_model, TaskType, PeftModel
 from transformers import (
     PreTrainedModel,
     AutoTokenizer,
@@ -99,7 +99,7 @@ def train_transformer(
     trainset, model: PreTrainedModel, configs: Dict, testset, model_idx
 ) -> Tuple[PreTrainedModel, float, float]:
     """Train a Hugging Face transformer model without any PEFT (LoRA) modifications."""
-    if not isinstance(model, PreTrainedModel):
+    if not isinstance(model, (PreTrainedModel, PeftModel)):
         raise ValueError("The provided model is not a Hugging Face transformer model")
 
     training_args = create_training_args(configs, model_idx)
