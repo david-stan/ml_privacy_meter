@@ -181,7 +181,7 @@ def get_model_signals(models_list, dataset, configs, logger, is_population=False
     device = configs["audit"]["device"]  # GPU device used for inferring signals
     if "tokenizer" in configs["data"].keys():
         tokenizer = AutoTokenizer.from_pretrained(
-            configs["data"].get("tokenizer", configs["train"]["model_name"]), clean_up_tokenization_spaces=True
+            configs["data"]["tokenizer"], clean_up_tokenization_spaces=True
         )
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
