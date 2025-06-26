@@ -103,7 +103,7 @@ def train_transformer(
         raise ValueError("The provided model is not a Hugging Face transformer model")
 
     training_args = create_training_args(configs, model_idx)
-    tokenizer = setup_tokenizer(configs["data"].get("tokenizer", configs["train"]["model_name"]))
+    tokenizer = setup_tokenizer(configs["data"]["tokenizer"])
 
     trainer = Trainer(
         model=model,
@@ -114,10 +114,9 @@ def train_transformer(
     )
 
     checkpoint_exists = bool(list(Path(training_args.output_dir).glob("checkpoint*")))
-    with torch.serialization.safe_globals([numpy._core.multiarray._reconstruct, numpy.ndarray]):
-        trainer.train(
-            resume_from_checkpoint=checkpoint_exists,
-        )
+    trainer.train(
+        resume_from_checkpoint=checkpoint_exists,
+    )
 
     logging(trainer, training_args, model_idx)
 
@@ -159,7 +158,7 @@ def train_transformer_with_peft(
     # peft_model = get_peft_model(model, peft_config)
 
     training_args = create_training_args(configs, model_idx)
-    tokenizer = setup_tokenizer(configs["data"].get("tokenizer", configs["train"]["model_name"]))
+    tokenizer = setup_tokenizer(configs["data"]["tokenizer"])
 
     trainer = Trainer(
         model=peft_model,
