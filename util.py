@@ -107,7 +107,7 @@ def load_dataset(configs: Dict[str, Any], data_dir: str, logger: logging.Logger)
         configs["data"]["dataset"],
         data_dir,
         logger,
-        tokenizer=configs["data"]["tokenizer"],
+        tokenizer=configs["data"].get("tokenizer", configs["train"]["model_name"]),
     )
 
 
