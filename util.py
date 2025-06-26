@@ -102,13 +102,21 @@ def load_dataset(configs: Dict[str, Any], data_dir: str, logger: logging.Logger)
         Any: Loaded dataset.
     """
     if not configs["data"].get("tokenize", False):
-        return get_dataset(configs["data"]["dataset"], data_dir, logger)
-    return get_dataset(
-        configs["data"]["dataset"],
-        data_dir,
-        logger,
-        tokenizer=configs["data"].get("tokenizer", configs["train"]["model_name"]),
-    )
+        dataset, population = get_dataset(configs["data"]["dataset"], data_dir, logger)
+    else:
+        dataset, population = get_dataset(
+            configs["data"]["dataset"],
+            data_dir,
+            logger,
+            tokenizer=configs["data"].get("tokenizer", configs["train"]["model_name"]),
+        )
+
+    num_samples = configs["train"].get("num_samples", None)
+    if num_samples is not None and num_samples < len(dataset):
+        dataset.hf_dataset = dataset.hf_dataset.select(np.arange(num_samples))
+        return dataset, population
+    else:
+        raise ValueError("num_samples must be less than the number of samples in the dataset.")
 
 
 def load_canary_dataset(
