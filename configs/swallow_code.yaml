@@ -35,7 +35,7 @@ train: # Configuration for training
 
 
 data: # Configuration for data
-  dataset: swallow-code # String indicates the name of the dataset. We support cifar10, cifar100, purchase100 and texas100 and agnews by default.
+  dataset: swallow_code # String indicates the name of the dataset. We support cifar10, cifar100, purchase100 and texas100 and agnews by default.
   data_dir: data
   tokenize: True
   tokenizer: shibing624/code-autocomplete-gpt2-base # String for indicating the tokenizer type. It can be any tokenizer or local checkpoint supported by the transformers library.

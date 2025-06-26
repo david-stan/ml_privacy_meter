@@ -283,7 +283,7 @@ def get_dataset(dataset_name: str, data_dir: str, logger: Any, **kwargs: Any) ->
             with open(f"{path}_population.pkl", "wb") as file:
                 pickle.dump(test_data, file)
             logger.info(f"Save population data to {path}_population.pkl")
-        elif dataset_name == "swallow-code":
+        elif dataset_name == "swallow_code":
             tokenizer = kwargs.get("tokenizer")
             if tokenizer is None:
                 swallow_code = load_swallow_code(tokenize=False)
