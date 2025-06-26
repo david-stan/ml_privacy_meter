@@ -128,6 +128,7 @@ class RMIAModelTrainer:
                         ),
                         self.configs,
                         hf_dataset.select(split_info["test"]),
+                        split
                     )
                 train_acc, test_acc = None, None
             else:
