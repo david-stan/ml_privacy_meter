@@ -15,8 +15,8 @@ audit: # Configurations for auditing
   population_size: 100
 
 train: # Configuration for training
-  model_name: gpt2 # String for indicating the model type. We support CNN, wrn28-1, wrn28-2, wrn28-10, vgg16, mlp, gpt2 and speedyresnet (requires cuda). More model types can be added in model.py.
-  tokenizer: gpt2 # String for indicating the tokenizer type. It can be any tokenizer or local checkpoint supported by the transformers library.
+  model_name: shibing624/code-autocomplete-gpt2-base # String for indicating the model type. We support CNN, wrn28-1, wrn28-2, wrn28-10, vgg16, mlp, gpt2 and speedyresnet (requires cuda). More model types can be added in model.py.
+  tokenizer: shibing624/code-autocomplete-gpt2-base # String for indicating the tokenizer type. It can be any tokenizer or local checkpoint supported by the transformers library.
   device: cuda:0 # String for indicating the device we want to use for training models.
   batch_size: 16
   auto_find_batch_size: False # When set to True, the batch size will be automatically set by the trainer according to the hardware's capability. Recommended for less powerful GPUs
@@ -38,4 +38,4 @@ data: # Configuration for data
   dataset: swallow-code # String indicates the name of the dataset. We support cifar10, cifar100, purchase100 and texas100 and agnews by default.
   data_dir: data
   tokenize: True
-  tokenizer: gpt2 # String for indicating the tokenizer type. It can be any tokenizer or local checkpoint supported by the transformers library.
+  tokenizer: shibing624/code-autocomplete-gpt2-base # String for indicating the tokenizer type. It can be any tokenizer or local checkpoint supported by the transformers library.

@@ -109,7 +109,7 @@ class RMIAModelTrainer:
 
             train_configs = self.configs["train"]
 
-            if model_name == "gpt2":
+            if model_name in ["gpt2", "shibing624/code-autocomplete-gpt2-base"]:
                 hf_dataset = self.dataset.hf_dataset
                 if train_configs.get("peft", None) is None:
                     model, train_loss, test_loss = train_transformer(

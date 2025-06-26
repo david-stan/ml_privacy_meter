@@ -14,6 +14,8 @@ import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer
 
+from datasets import Dataset as HFDataset
+
 from dataset import TabularDataset, TextDataset, load_agnews, load_swallow_code
 from trainers.fast_train import get_batches, load_cifar10_data
 
@@ -293,11 +295,14 @@ def get_dataset(dataset_name: str, data_dir: str, logger: Any, **kwargs: Any) ->
                     ),
                 )
 
-            swallow_code_test = swallow_code.train_test_split(test_size=0.1)
+            logger.info("Downloading Swallow Code train dataset")
+            swallow_code = HFDataset.from_list(list(swallow_code.take(200000)))
+            logger.info("Downloading Swallow Code test dataset")
+            shallow_code_test = HFDataset.from_list(list(swallow_code.take(20000)))
 
-            all_data = TextDataset(swallow_code["train"], target_column="labels", text_column="text")
+            all_data = TextDataset(swallow_code, target_column="labels", text_column="text")
             test_data = TextDataset(
-                swallow_code["test"], target_column="labels", text_column="text"
+                shallow_code_test, target_column="labels", text_column="text"
             )
             with open(f"{path}.pkl", "wb") as file:
                 pickle.dump(all_data, file)

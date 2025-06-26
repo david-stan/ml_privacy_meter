@@ -50,7 +50,7 @@ def load_swallow_code(
     Returns:
         Dataset: The AG News dataset.
     """
-    swallow_code = load_dataset("tokyotech-llm/swallow-code", "swallow-code", split="train")
+    swallow_code = load_dataset("tokyotech-llm/swallow-code", "swallow-code", streaming=True, split="train")
     if preprocessing_fn is not None:
         swallow_code = swallow_code.map(preprocessing_fn)
         print("Preprocessing function applied to the dataset.")
