@@ -30,7 +30,7 @@ train: # Configuration for training
     type: lora # Specify fine-tuning method
     fan_in_fan_out: True
     r: 8
-    target_modules: ["c_attn"]
+    target_modules: ["c_attn", "c_proj", "c_fc"]
 
 data: # Configuration for data
   dataset: agnews # String indicates the name of the dataset. We support cifar10, cifar100, purchase100 and texas100 and agnews by default.
