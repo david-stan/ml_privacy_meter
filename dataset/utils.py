@@ -14,7 +14,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer
 
-from dataset import TabularDataset, TextDataset, load_agnews
+from dataset import TabularDataset, TextDataset, load_agnews, load_swallow_code
 from trainers.fast_train import get_batches, load_cifar10_data
 
 
@@ -274,6 +274,30 @@ def get_dataset(dataset_name: str, data_dir: str, logger: Any, **kwargs: Any) ->
             all_data = TextDataset(agnews, target_column="labels", text_column="text")
             test_data = TextDataset(
                 agnews_test, target_column="labels", text_column="text"
+            )
+            with open(f"{path}.pkl", "wb") as file:
+                pickle.dump(all_data, file)
+            logger.info(f"Save data to {path}.pkl")
+            with open(f"{path}_population.pkl", "wb") as file:
+                pickle.dump(test_data, file)
+            logger.info(f"Save population data to {path}_population.pkl")
+        elif dataset_name == "swallow-code":
+            tokenizer = kwargs.get("tokenizer")
+            if tokenizer is None:
+                swallow_code = load_swallow_code(tokenize=False)
+            else:
+                swallow_code = load_swallow_code(
+                    tokenize=True,
+                    tokenizer=AutoTokenizer.from_pretrained(
+                        tokenizer, clean_up_tokenization_spaces=True
+                    ),
+                )
+
+            swallow_code_test = swallow_code.train_test_split(test_size=0.1)
+
+            all_data = TextDataset(swallow_code["train"], target_column="labels", text_column="text")
+            test_data = TextDataset(
+                swallow_code["test"], target_column="labels", text_column="text"
             )
             with open(f"{path}.pkl", "wb") as file:
                 pickle.dump(all_data, file)
