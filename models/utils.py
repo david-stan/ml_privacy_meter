@@ -400,6 +400,7 @@ def prepare_models(
                     ),
                     configs,
                     hf_dataset.select(split_info["test"]),
+                    split
                 )
             train_acc, test_acc = None, None
         elif model_name != "speedyresnet":

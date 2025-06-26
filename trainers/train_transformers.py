@@ -1,8 +1,11 @@
 from typing import Tuple, Dict
 import os
 import matplotlib.pyplot as plt
+import numpy
 import pandas as pd
+from pathlib import Path
 
+import torch
 from peft import LoraConfig, get_peft_model, TaskType
 from transformers import (
     PreTrainedModel,
@@ -14,26 +17,28 @@ from transformers import (
 _tokenizer_cache: dict[str, AutoTokenizer] = {}
 
 
-def create_training_args(configs: Dict) -> TrainingArguments:
+def create_training_args(configs: Dict, model_idx: int) -> TrainingArguments:
     """Creates and returns the training arguments for the transformer model."""
     return TrainingArguments(
-        output_dir=configs["run"]["log_dir"],
+        run_name="model_{model_idx}",
+        output_dir=f"{configs['run']['log_dir']}/models/model_{model_idx}",
         num_train_epochs=configs["train"]["epochs"],
         per_device_train_batch_size=configs["train"]["batch_size"],
         per_device_eval_batch_size=configs["train"]["batch_size"],
-        auto_find_batch_size=configs["train"].get(
-            "auto_find_batch_size", False
-        ),  # if this is not specified in the config, use the specified batch size
+        auto_find_batch_size=configs["train"].get("auto_find_batch_size", False),
         warmup_steps=500,
         optim=configs["train"]["optimizer"],
         weight_decay=configs["train"]["weight_decay"],
         learning_rate=configs["train"]["learning_rate"],
-        save_strategy="no",
-        logging_strategy="steps",
-        eval_strategy="steps",
-        logging_steps=50,
-        eval_steps=50,
+        save_strategy="steps" if configs["train"]["save_checkpoints"] else "no",
+        save_steps=configs["train"]["eval_steps"],
+        save_safetensors=True,
         save_total_limit=1,
+        logging_dir=f"{configs['run']['log_dir']}/models/tensorboard",
+        logging_strategy="steps",
+        logging_steps=configs["train"]["eval_steps"],
+        eval_strategy="steps",
+        eval_steps=configs["train"]["eval_steps"],
         gradient_accumulation_steps=configs["train"].get(
             "gradient_accumulation_steps", 1
         ),
@@ -97,8 +102,8 @@ def train_transformer(
     if not isinstance(model, PreTrainedModel):
         raise ValueError("The provided model is not a Hugging Face transformer model")
 
-    training_args = create_training_args(configs)
-    tokenizer = setup_tokenizer(configs["data"]["tokenizer"])
+    training_args = create_training_args(configs, model_idx)
+    tokenizer = setup_tokenizer(configs["data"].get("tokenizer", configs["train"]["model_name"]))
 
     trainer = Trainer(
         model=model,
@@ -108,7 +113,11 @@ def train_transformer(
         tokenizer=tokenizer,
     )
 
-    trainer.train()
+    checkpoint_exists = bool(list(Path(training_args.output_dir).glob("checkpoint*")))
+    with torch.serialization.safe_globals([numpy._core.multiarray._reconstruct, numpy.ndarray]):
+        trainer.train(
+            resume_from_checkpoint=checkpoint_exists,
+        )
 
     logging(trainer, training_args, model_idx)
 
@@ -149,8 +158,8 @@ def train_transformer_with_peft(
     # peft_config = get_peft_model_config(configs)
     # peft_model = get_peft_model(model, peft_config)
 
-    training_args = create_training_args(configs)
-    tokenizer = setup_tokenizer(configs["data"]["tokenizer"])
+    training_args = create_training_args(configs, model_idx)
+    tokenizer = setup_tokenizer(configs["data"].get("tokenizer", configs["train"]["model_name"]))
 
     trainer = Trainer(
         model=peft_model,
