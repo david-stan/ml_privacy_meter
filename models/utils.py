@@ -49,7 +49,7 @@ def get_model(model_type: str, dataset_name: str, configs: dict):
     """
     train_configs = configs["train"]
 
-    if model_type == "gpt2":
+    if model_type in ["gpt2", "shibing624/code-autocomplete-gpt2-base"]:
         if train_configs.get("peft", None) is None:
             return AutoModelForCausalLM.from_pretrained(model_type)
         else:

@@ -112,7 +112,7 @@ def load_dataset(configs: Dict[str, Any], data_dir: str, logger: logging.Logger)
         )
 
     num_samples = configs["train"].get("num_samples", None)
-    if num_samples is not None and num_samples < len(dataset):
+    if num_samples is not None and num_samples <= len(dataset):
         dataset.hf_dataset = dataset.hf_dataset.select(np.arange(num_samples))
         return dataset, population
     else:
