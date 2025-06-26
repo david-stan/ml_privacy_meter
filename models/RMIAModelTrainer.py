@@ -68,12 +68,12 @@ class RMIAModelTrainer:
             train1_indices = self.indices[:split_index]
             test1_indices = self.indices[split_index:]
             memberships[model1_idx, train1_indices] = True
-            data_splits.append({"train": train1_indices, "test": test1_indices})
+            data_splits.append({"train": train1_indices.copy(), "test": test1_indices.copy()})
 
             train2_indices = test1_indices
             test2_indices = train1_indices
             memberships[model2_idx, train2_indices] = True
-            data_splits.append({"train": train2_indices, "test": test2_indices})
+            data_splits.append({"train": train2_indices.copy(), "test": test2_indices.copy()})
 
         return data_splits, memberships
 
