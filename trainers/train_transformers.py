@@ -42,7 +42,7 @@ def create_training_args(configs: Dict, model_idx: int) -> TrainingArguments:
         gradient_accumulation_steps=configs["train"].get(
             "gradient_accumulation_steps", 1
         ),
-        fp16=True,
+        bf16=True,
     )
 
 def setup_tokenizer(tokenizer_name: str) -> AutoTokenizer:

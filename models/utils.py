@@ -49,13 +49,14 @@ def get_model(model_type: str, dataset_name: str, configs: dict):
     """
     train_configs = configs["train"]
 
-    if model_type in ["gpt2", "shibing624/code-autocomplete-gpt2-base"]:
+    if model_type in ["gpt2", "shibing624/code-autocomplete-gpt2-base", "JetBrains/Mellum-4b-sft-python"]:
         if train_configs.get("peft", None) is None:
             return AutoModelForCausalLM.from_pretrained(model_type)
         else:
             peft_config = get_peft_model_config(configs)
+            orig_model = AutoModelForCausalLM.from_pretrained(model_type)
             return get_peft_model(
-                AutoModelForCausalLM.from_pretrained(model_type), peft_config
+                orig_model, peft_config
             )
 
     num_classes = INPUT_OUTPUT_SHAPE[dataset_name][1]

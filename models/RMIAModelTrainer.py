@@ -109,7 +109,7 @@ class RMIAModelTrainer:
 
             train_configs = self.configs["train"]
 
-            if model_name in ["gpt2", "shibing624/code-autocomplete-gpt2-base"]:
+            if model_name in ["gpt2", "shibing624/code-autocomplete-gpt2-base", "JetBrains/Mellum-4b-sft-python"]:
                 hf_dataset = self.dataset.hf_dataset
                 model, train_loss, test_loss = train_transformer(
                     hf_dataset.select(split_info["train"]),
