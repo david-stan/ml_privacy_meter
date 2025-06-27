@@ -13,6 +13,8 @@ from datasets import Dataset as HFDataset
 
 from dataset import TextDataset, load_agnews, load_swallow_code
 
+from ml_privacy_meter.dataset import load_code_clippy_github
+
 
 class InfinitelyIndexableDataset(Dataset):
     """
@@ -108,6 +110,34 @@ def get_dataset(dataset_name: str, data_dir: str, logger: Any, **kwargs: Any) ->
             all_data = TextDataset(swallow_code, target_column="labels", text_column="text")
             test_data = TextDataset(
                 shallow_code_test, target_column="labels", text_column="text"
+            )
+            with open(f"{path}.pkl", "wb") as file:
+                pickle.dump(all_data, file)
+            logger.info(f"Save data to {path}.pkl")
+            with open(f"{path}_population.pkl", "wb") as file:
+                pickle.dump(test_data, file)
+            logger.info(f"Save population data to {path}_population.pkl")
+        elif dataset_name == "code_clippy":
+            tokenizer = kwargs.get("tokenizer")
+            logger.info("Requesting Code Clippy streaming iterator...")
+            if tokenizer is None:
+                code_clippy = load_code_clippy_github(tokenize=False)
+            else:
+                code_clippy = load_code_clippy_github(
+                    tokenize=True,
+                    tokenizer=AutoTokenizer.from_pretrained(
+                        tokenizer, clean_up_tokenization_spaces=True
+                    ),
+                )
+
+            logger.info("Downloading Code Clippy train dataset")
+            code_clippy = HFDataset.from_list(list(code_clippy.take(100000)))
+            logger.info("Downloading Code Clippy test dataset")
+            code_clippy_test = HFDataset.from_list(list(code_clippy.take(1000)))
+
+            all_data = TextDataset(code_clippy, target_column="labels", text_column="text")
+            test_data = TextDataset(
+                code_clippy_test, target_column="labels", text_column="text"
             )
             with open(f"{path}.pkl", "wb") as file:
                 pickle.dump(all_data, file)
