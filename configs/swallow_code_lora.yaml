@@ -26,7 +26,7 @@ train: # Configuration for training
   optimizer: adamw_torch
   save_checkpoints: True
   eval_steps: 100
-  num_samples: 30000
+  num_samples: 3000
   peft:
     type: lora # Only lora is supported
     fan_in_fan_out: True

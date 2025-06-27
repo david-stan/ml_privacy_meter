@@ -27,7 +27,7 @@ train: # Configuration for training
   save_checkpoints: True
   restart_from_checkpoint: True
   eval_steps: 50
-  num_samples: 50000
+  num_samples: 2000
 
 
 data: # Configuration for data

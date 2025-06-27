@@ -2,7 +2,6 @@
 
 import argparse
 import math
-import pdb
 import time
 
 import numpy as np
@@ -10,10 +9,10 @@ import torch
 import yaml
 from torch.utils.data import Subset
 
-from audit import get_average_audit_results, audit_models, sample_auditing_dataset
+from audit import audit_models, sample_auditing_dataset
 from get_signals import get_model_signals
 from models.RMIAModelTrainer import RMIAModelTrainer
-from models.utils import load_models, train_models, split_dataset_for_training
+from models.utils import load_models
 from util import (
     check_configs,
     setup_log,
@@ -134,17 +133,6 @@ def main():
         logger,
         configs,
     )
-
-    if len(target_model_indices) > 1:
-        logger.info(
-            "Auditing privacy risk took %0.1f seconds", time.time() - baseline_time
-        )
-
-    # Get average audit results across all experiments
-    if len(target_model_indices) > 1:
-        get_average_audit_results(
-            directories["report_dir"], mia_score_list, membership_list, logger
-        )
 
     logger.info("Total runtime: %0.5f seconds", time.time() - start_time)
 

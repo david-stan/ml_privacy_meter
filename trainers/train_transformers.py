@@ -1,12 +1,10 @@
 from typing import Tuple, Dict
 import os
 import matplotlib.pyplot as plt
-import numpy
 import pandas as pd
 from pathlib import Path
 
-import torch
-from peft import LoraConfig, get_peft_model, TaskType, PeftModel
+from peft import LoraConfig, TaskType, PeftModel
 from transformers import (
     PreTrainedModel,
     AutoTokenizer,

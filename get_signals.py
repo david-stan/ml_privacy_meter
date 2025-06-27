@@ -3,7 +3,6 @@ from typing import Optional, Union
 
 import numpy as np
 import torch
-from torch.nn import functional as F
 from tqdm import tqdm
 from transformers import PreTrainedModel, AutoTokenizer
 
@@ -71,57 +70,6 @@ def get_softmax(
     return all_softmax_list
 
 
-def get_loss(
-    model: Union[PreTrainedModel, torch.nn.Module],
-    samples: torch.Tensor,
-    labels: torch.Tensor,
-    batch_size: int,
-    device: str,
-    pad_token_id: Optional[int] = None,
-) -> np.ndarray:
-    """
-    Get the model's loss for the given inputs and expected outputs.
-
-    Args:
-        model (PreTrainedModel or torch.nn.Module): Model instance.
-        samples (torch.Tensor): Model input.
-        labels (torch.Tensor): Model expected output.
-        batch_size (int): Batch size for getting signals.
-        device (str): Device used for computing signals.
-        pad_token_id (Optional[int]): Padding token ID to ignore in aggregation.
-
-    Returns:
-        all_loss_list (np.array): Loss value of all samples
-    """
-    model.to(device)
-    model.eval()
-    with torch.no_grad():
-        loss_list = []
-        batched_samples = torch.split(samples, batch_size)
-        batched_labels = torch.split(labels, batch_size)
-        for x, y in zip(batched_samples, batched_labels):
-            x = x.to(device)
-            y = y.to(device)
-            if isinstance(model, PreTrainedModel):
-                logit_signals = model(x).logits
-                loss = torch.nn.CrossEntropyLoss(
-                    reduction="none", ignore_index=pad_token_id
-                )(logit_signals.transpose(1, 2), y)
-                mask = loss != 0
-                loss = (loss * mask).sum(1) / mask.sum(1)
-                loss_list.append(loss.cpu().detach().numpy().reshape(batch_size, -1))
-            else:
-                logit_signals = model(x)
-                loss_list.append(
-                    F.cross_entropy(logit_signals, y.ravel(), reduction="none").to(
-                        "cpu"
-                    )
-                )
-        all_loss_list = np.concatenate(loss_list).reshape((-1, 1))
-    model.to("cpu")
-    return all_loss_list
-
-
 def get_model_signals(models_list, dataset, configs, logger, is_population=False):
     """Function to get models' signals (softmax, loss, logits) on a given dataset.
 
@@ -148,12 +96,8 @@ def get_model_signals(models_list, dataset, configs, logger, is_population=False
         signals = np.load(
             f"{configs['run']['log_dir']}/signals/{signal_file_name}",
         )
-        if configs.get("ramia", None) is None:
-            expected_size = len(dataset)
-            signal_source = "training data size"
-        else:
-            expected_size = len(dataset) * configs["ramia"]["sample_size"]
-            signal_source = f"training data size multiplied by ramia sample size ({configs['ramia']['sample_size']})"
+        expected_size = len(dataset)
+        signal_source = "training data size"
 
         if signals.shape[0] == expected_size:
             logger.info("Signals loaded from disk successfully.")
@@ -185,10 +129,6 @@ def get_model_signals(models_list, dataset, configs, logger, is_population=False
 
     signals = []
     logger.info("Computing signals for all models.")
-    if configs.get("ramia", None) and not is_population:
-        if len(data.shape) != 2:
-            data = data.view(-1, *data.shape[2:])
-            targets = targets.view(data.shape[0], -1)
     for model in models_list:
         signals.append(
             get_softmax(
