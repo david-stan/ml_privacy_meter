@@ -50,33 +50,22 @@ def get_softmax(
             y = y.to(device)
 
             pred = model(x)
-            if isinstance(model, PreTrainedModel):
-                logits = pred.logits
-                logit_signals = torch.div(logits, temp)
-                log_probs = torch.log_softmax(logit_signals, dim=-1)
-                true_class_log_probs = log_probs.gather(2, y.unsqueeze(-1)).squeeze(-1)
-                # Mask out padding tokens
-                mask = (
-                    y != pad_token_id
-                    if pad_token_id is not None
-                    else torch.ones_like(y, dtype=torch.bool)
-                )
-                true_class_log_probs = true_class_log_probs * mask
-                sequence_probs = torch.exp(
-                    true_class_log_probs.sum(1) / mask.sum(1)
-                )
-                softmax_list.append(sequence_probs.to("cpu").view(-1, 1))
-            else:
-                logit_signals = torch.div(pred, temp)
-                max_logit_signals, _ = torch.max(logit_signals, dim=1, keepdim=True)
-                # This is to avoid overflow when exp(logit_signals)
-                logit_signals = torch.sub(
-                    logit_signals, max_logit_signals
-                )
-                exp_logit_signals = torch.exp(logit_signals)
-                exp_logit_sum = exp_logit_signals.sum(dim=1).reshape(-1, 1)
-                true_exp_logit = exp_logit_signals.gather(1, y.unsqueeze(-1)).squeeze(-1)
-                softmax_list.append(torch.div(true_exp_logit, exp_logit_sum).to("cpu"))
+
+            logits = pred.logits
+            logit_signals = torch.div(logits, temp)
+            log_probs = torch.log_softmax(logit_signals, dim=-1)
+            true_class_log_probs = log_probs.gather(2, y.unsqueeze(-1)).squeeze(-1)
+            # Mask out padding tokens
+            mask = (
+                y != pad_token_id
+                if pad_token_id is not None
+                else torch.ones_like(y, dtype=torch.bool)
+            )
+            true_class_log_probs = true_class_log_probs * mask
+            sequence_probs = torch.exp(
+                true_class_log_probs.sum(1) / mask.sum(1)
+            )
+            softmax_list.append(sequence_probs.to("cpu").view(-1, 1))
         all_softmax_list = np.concatenate(softmax_list)
     model.to("cpu")
     return all_softmax_list
