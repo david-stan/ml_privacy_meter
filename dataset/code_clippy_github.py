@@ -50,7 +50,8 @@ def load_code_clippy_github(
     Returns:
         Dataset: The Code Clippy dataset.
     """
-    code_clippy = load_dataset("CodedotAI/code_clippy_github", "Kotlin-all", streaming=True, split="train")
+    code_clippy = load_dataset("CodedotAI/code_clippy_github", "Kotlin-all",
+                               streaming=True, trust_remote_code=True, split="train")
     if preprocessing_fn is not None:
         code_clippy = code_clippy.map(preprocessing_fn)
         print("Preprocessing function applied to the dataset.")

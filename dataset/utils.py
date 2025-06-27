@@ -11,9 +11,7 @@ from transformers import AutoTokenizer
 
 from datasets import Dataset as HFDataset
 
-from dataset import TextDataset, load_agnews, load_swallow_code
-
-from ml_privacy_meter.dataset import load_code_clippy_github
+from dataset import TextDataset, load_agnews, load_swallow_code, load_code_clippy_github
 
 
 class InfinitelyIndexableDataset(Dataset):
