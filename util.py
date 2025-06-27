@@ -11,25 +11,6 @@ import torch
 from dataset import get_dataset
 
 
-def check_configs(configs: Dict[str, Any]) -> None:
-    """
-    Function to check if the configs are valid.
-
-    Args:
-        configs (Dict[str, Any]): Configs provided by the user.
-    """
-    privacy_game = configs["audit"]["privacy_game"]
-    supported_games = ["privacy_loss_model"]
-    if privacy_game not in supported_games:
-        raise NotImplementedError(
-            f"{privacy_game} is not supported. Please choose from {supported_games}"
-        )
-    mia_algorithm = configs["audit"]["algorithm"]
-    num_models = configs["audit"]["num_ref_models"]
-    if mia_algorithm == "RMIA" and (num_models is None or num_models < 1):
-        raise ValueError("The game should have at least 2 models")
-
-
 def setup_log(report_dir: str, name: str, save_file: bool) -> logging.Logger:
     """
     Function to generate the logger for the current run.

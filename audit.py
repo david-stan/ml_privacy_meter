@@ -179,11 +179,6 @@ def sample_auditing_dataset(
     Raises:
         ValueError: If the requested audit data size is larger than the full dataset or not an even number.
     """
-    if configs["run"]["num_experiments"] > 1:
-        logger.warning(
-            "Auditing multiple models. Balanced downsampling is only based on the data membership of the FIRST target model!"
-        )
-
     audit_data_size = configs["audit"].get("data_size", len(dataset))
     if audit_data_size < len(dataset):
         if audit_data_size % 2 != 0:

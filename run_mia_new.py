@@ -1,7 +1,6 @@
 """This file is the main entry point for running the privacy auditing tool."""
 
 import argparse
-import math
 import time
 
 import numpy as np
@@ -14,7 +13,6 @@ from get_signals import get_model_signals
 from models.RMIAModelTrainer import RMIAModelTrainer
 from models.utils import load_models
 from util import (
-    check_configs,
     setup_log,
     initialize_seeds,
     create_directories,
@@ -44,9 +42,6 @@ def main():
     with open(args.cf, "rb") as f:
         configs = yaml.load(f, Loader=yaml.Loader)
 
-    # Validate configurations
-    check_configs(configs)
-
     # Initialize seeds for reproducibility
     initialize_seeds(configs["run"]["random_seed"])
 
@@ -73,9 +68,8 @@ def main():
     logger.info("Loading dataset took %0.5f seconds", time.time() - baseline_time)
 
     # Define experiment parameters
-    num_experiments = configs["run"]["num_experiments"]
     num_reference_models = configs["audit"]["num_ref_models"]
-    num_model_pairs = max(math.ceil(num_experiments / 2.0), num_reference_models + 1)
+    num_model_pairs = num_reference_models + 1
 
     # Load or train models
     baseline_time = time.time()
@@ -119,7 +113,7 @@ def main():
 
     # Perform the privacy audit
     baseline_time = time.time()
-    target_model_indices = list(range(num_experiments))
+    target_model_indices = [0]
 
 
 
