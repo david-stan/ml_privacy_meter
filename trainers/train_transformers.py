@@ -24,7 +24,7 @@ def create_training_args(configs: Dict, model_idx: int) -> TrainingArguments:
         per_device_train_batch_size=configs["train"]["batch_size"],
         per_device_eval_batch_size=configs["train"]["batch_size"],
         auto_find_batch_size=configs["train"].get("auto_find_batch_size", False),
-        warmup_steps=500,
+        warmup_ratio=configs["train"]["warmup_ratio"],
         optim=configs["train"]["optimizer"],
         weight_decay=configs["train"]["weight_decay"],
         learning_rate=configs["train"]["learning_rate"],
@@ -136,8 +136,8 @@ def get_peft_model_config(configs: Dict) -> LoraConfig:
             inference_mode=False,
             r=configs["train"]["peft"]["r"],
             target_modules=configs["train"]["peft"]["target_modules"],
-            lora_alpha=32,
-            lora_dropout=0.05,
+            lora_alpha=configs["train"]["peft"]["lora_alpha"],
+            lora_dropout=configs["train"]["peft"]["lora_dropout"],
             task_type=TaskType.CAUSAL_LM,
         )
     else:
