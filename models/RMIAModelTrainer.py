@@ -107,20 +107,15 @@ class RMIAModelTrainer:
 
             train_configs = self.configs["train"]
 
-            if model_name in ["gpt2", "shibing624/code-autocomplete-gpt2-base"]:
-                hf_dataset = self.dataset.hf_dataset
-                model, train_loss, test_loss = train_transformer(
-                    hf_dataset.select(split_info["train"]),
-                    get_model(model_name, dataset_name, self.configs),
-                    self.configs,
-                    hf_dataset.select(split_info["test"][:1000]),
-                    model_idx=split
-                )
-                train_acc, test_acc = None, None
-            else:
-                raise ValueError(
-                    f"The {model_name} is not supported for the {dataset_name}"
-                )
+            hf_dataset = self.dataset.hf_dataset
+            model, train_loss, test_loss = train_transformer(
+                hf_dataset.select(split_info["train"]),
+                get_model(model_name, dataset_name, self.configs),
+                self.configs,
+                hf_dataset.select(split_info["test"][:1000]),
+                model_idx=split
+            )
+            train_acc, test_acc = None, None
 
             model_list.append(copy.deepcopy(model))
             self.logger.info(
@@ -128,8 +123,7 @@ class RMIAModelTrainer:
             )
 
             model_idx = split
-            with open(f"{self.log_dir}/model_{model_idx}.pkl", "wb") as f:
-                pickle.dump(model.state_dict(), f)
+            model.save_pretrained(f"{self.log_dir}/model_{model_idx}")
 
             model_metadata_dict[model_idx] = {
                 "num_train": len(split_info["train"]),

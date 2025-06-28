@@ -46,7 +46,7 @@ def main():
     initialize_seeds(configs["run"]["random_seed"])
 
     # Create necessary directories
-    log_dir = configs["run"]["log_dir"]
+    log_dir = f"outputs/{configs['run']['log_dir']}"
     directories = {
         "log_dir": log_dir,
         "report_dir": f"{log_dir}/report",

@@ -19,7 +19,7 @@ def create_training_args(configs: Dict, model_idx: int) -> TrainingArguments:
     """Creates and returns the training arguments for the transformer model."""
     return TrainingArguments(
         run_name="model_{model_idx}",
-        output_dir=f"{configs['run']['log_dir']}/models/model_{model_idx}",
+        output_dir=f"outputs/{configs['run']['log_dir']}/models/model_{model_idx}",
         num_train_epochs=configs["train"]["epochs"],
         per_device_train_batch_size=configs["train"]["batch_size"],
         per_device_eval_batch_size=configs["train"]["batch_size"],
@@ -40,7 +40,7 @@ def create_training_args(configs: Dict, model_idx: int) -> TrainingArguments:
         gradient_accumulation_steps=configs["train"].get(
             "gradient_accumulation_steps", 1
         ),
-        fp16=True,
+        bf16=True,
     )
 
 def setup_tokenizer(tokenizer_name: str) -> AutoTokenizer:

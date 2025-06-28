@@ -4,6 +4,7 @@ import json
 import logging
 
 import pickle
+from functools import lru_cache
 
 import numpy as np
 import torch
@@ -13,12 +14,17 @@ from trainers.train_transformers import *
 from peft import get_peft_model
 
 
-INPUT_OUTPUT_SHAPE = {
-    "cifar10": [3, 10],
-    "cifar100": [3, 100],
-    "purchase100": [600, 100],
-    "texas100": [6169, 100],
-}
+@lru_cache
+def get_base_model(model_type: str):
+    """Returns HuggingFace model as a base.
+
+    Args:
+        model_type (str): Type of the model to be instantiated.
+    Returns:
+        torch.nn.Module or PreTrainedModel: An instance of the specified model, ready for training or inference.
+    """
+    print("In get_base_model")
+    return AutoModelForCausalLM.from_pretrained(model_type)
 
 
 def get_model(model_type: str, dataset_name: str, configs: dict):
@@ -38,10 +44,11 @@ def get_model(model_type: str, dataset_name: str, configs: dict):
         return AutoModelForCausalLM.from_pretrained(model_type)
     else:
         peft_config = get_peft_model_config(configs)
-        orig_model = AutoModelForCausalLM.from_pretrained(model_type)
-        return get_peft_model(
+        orig_model = get_base_model(model_type)
+        peft_model = get_peft_model(
             orig_model, peft_config
         )
+        return peft_model
 
 def load_existing_model(
     model_metadata: dict, dataset, device: str, config: dict
@@ -70,6 +77,8 @@ def load_existing_model(
         model.load_state_dict(torch.load(model_metadata["model_path"]))
     elif model_checkpoint_extension == "":
         if isinstance(model, PreTrainedModel):
+            model = model.from_pretrained(model_metadata["model_path"])
+        elif isinstance(model, PeftModel):
             model = model.from_pretrained(model_metadata["model_path"])
         else:
             raise ValueError(f"Model path is invalid.")
