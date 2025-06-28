@@ -18,12 +18,12 @@ train: # Configuration for training
   auto_find_batch_size: True # When set to True, the batch size will be automatically set by the trainer according to the hardware's capability. Recommended for less powerful GPUs
   learning_rate: 0.000001
   weight_decay: 0.01
-  epochs: 1
+  epochs: 3
   optimizer: adamw_torch
   save_checkpoints: True
   restart_from_checkpoint: True
   eval_steps: 50
-  num_samples: 50000
+  num_samples: 30000
 
 data: # Configuration for data
   dataset: agnews # String indicates the name of the dataset. We support cifar10, cifar100, purchase100 and texas100 and agnews by default.
