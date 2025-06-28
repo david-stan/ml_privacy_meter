@@ -133,9 +133,9 @@ def get_dataset(dataset_name: str, data_dir: str, logger: Any, **kwargs: Any) ->
             logger.info("Downloading Code Clippy test dataset")
             code_clippy_test = HFDataset.from_list(list(code_clippy.take(1000)))
 
-            all_data = TextDataset(code_clippy, target_column="labels", text_column="text")
+            all_data = TextDataset(code_clippy, target_column="labels", text_column="code_text")
             test_data = TextDataset(
-                code_clippy_test, target_column="labels", text_column="text"
+                code_clippy_test, target_column="labels", text_column="code_text"
             )
             with open(f"{path}.pkl", "wb") as file:
                 pickle.dump(all_data, file)

@@ -19,7 +19,7 @@ def replace_label_with_input_ids(
         Dict[str, Any]: The modified example with input_ids and labels.
     """
     tokenized_inputs = tokenizer(
-        example["text"], padding="max_length", truncation=True, max_length=512
+        example["code_text"], padding="max_length", truncation=True, max_length=512
     )
     tokenized_inputs["labels"] = tokenized_inputs[
         "input_ids"
