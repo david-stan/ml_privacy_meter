@@ -2,16 +2,15 @@
 
 import json
 import logging
-
 import pickle
 from functools import lru_cache
 
 import numpy as np
 import torch
+from peft import get_peft_model
 from transformers import AutoModelForCausalLM
 
 from trainers.train_transformers import *
-from peft import get_peft_model
 
 
 @lru_cache
@@ -23,11 +22,10 @@ def get_base_model(model_type: str):
     Returns:
         torch.nn.Module or PreTrainedModel: An instance of the specified model, ready for training or inference.
     """
-    print("In get_base_model")
     return AutoModelForCausalLM.from_pretrained(model_type)
 
 
-def get_model(model_type: str, dataset_name: str, configs: dict):
+def get_model(model_type: str, dataset_name: str, configs: dict, ignore_peft: bool = False):
     """
     Instantiate and return a model based on the given model type and dataset name.
 
@@ -35,12 +33,14 @@ def get_model(model_type: str, dataset_name: str, configs: dict):
         model_type (str): Type of the model to be instantiated.
         dataset_name (str): Name of the dataset the model will be used for.
         configs (dict): Configuration dictionary containing information about the model.
+        ignore_peft (bool): Flag to ignore PEFT configuration and return a base model. Default is False.
+            Use for loading the existing model from disk.
     Returns:
         torch.nn.Module or PreTrainedModel: An instance of the specified model, ready for training or inference.
     """
     train_configs = configs["train"]
 
-    if train_configs.get("peft", None) is None:
+    if train_configs.get("peft", None) is None or ignore_peft:
         return AutoModelForCausalLM.from_pretrained(model_type)
     else:
         peft_config = get_peft_model_config(configs)
@@ -66,7 +66,7 @@ def load_existing_model(
     model_name = model_metadata["model_name"]
     dataset_name = model_metadata["dataset"]
 
-    model = get_model(model_name, dataset_name, config)
+    model = get_model(model_name, dataset_name, config, ignore_peft=True)
 
     model_checkpoint_extension = os.path.splitext(model_metadata["model_path"])[1]
     if model_checkpoint_extension == ".pkl":
@@ -79,7 +79,7 @@ def load_existing_model(
         if isinstance(model, PreTrainedModel):
             model = model.from_pretrained(model_metadata["model_path"])
         elif isinstance(model, PeftModel):
-            model = model.from_pretrained(model_metadata["model_path"])
+            model = PeftModel.from_pretrained(model, model_metadata["model_path"])
         else:
             raise ValueError(f"Model path is invalid.")
     else:

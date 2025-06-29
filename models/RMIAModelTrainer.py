@@ -133,7 +133,7 @@ class RMIAModelTrainer:
                 "model_name": model_name,
                 "learning_rate": self.configs["train"]["learning_rate"],
                 "weight_decay": self.configs["train"]["weight_decay"],
-                "model_path": f"{self.log_dir}/model_{model_idx}.pkl",
+                "model_path": f"{self.log_dir}/model_{model_idx}",
                 "train_acc": train_acc,
                 "test_acc": test_acc,
                 "train_loss": train_loss,
