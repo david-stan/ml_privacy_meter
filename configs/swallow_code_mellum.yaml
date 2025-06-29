@@ -16,14 +16,14 @@ train: # Configuration for training
   device: cuda:0 # String for indicating the device we want to use for training models.
   batch_size: 4
   auto_find_batch_size: True # When set to True, the batch size will be automatically set by the trainer according to the hardware's capability. Recommended for less powerful GPUs
-  learning_rate: 0.0002
+  learning_rate: 0.00001
   weight_decay: 0.01
   epochs: 3
   optimizer: adamw_torch
   save_checkpoints: True
   restart_from_checkpoint: True
   eval_steps: 100
-  num_samples: 2000
+  num_samples: 30000
   warmup_ratio: 0.15
   peft:
     type: lora # Only lora is supported
