@@ -9,6 +9,8 @@ from functools import lru_cache
 import numpy as np
 import torch
 from transformers import AutoModelForCausalLM
+from transformers.modeling_utils import PreTrainedModel
+from peft import PeftModel
 
 from trainers.train_transformers import *
 from peft import get_peft_model
@@ -23,7 +25,6 @@ def get_base_model(model_type: str):
     Returns:
         torch.nn.Module or PreTrainedModel: An instance of the specified model, ready for training or inference.
     """
-    print("In get_base_model")
     return AutoModelForCausalLM.from_pretrained(model_type)
 
 
@@ -79,7 +80,7 @@ def load_existing_model(
         if isinstance(model, PreTrainedModel):
             model = model.from_pretrained(model_metadata["model_path"])
         elif isinstance(model, PeftModel):
-            model = model.from_pretrained(model_metadata["model_path"])
+            model = PeftModel.from_pretrained(model, model_metadata["model_path"])
         else:
             raise ValueError(f"Model path is invalid.")
     else:
