@@ -28,7 +28,7 @@ def replace_label_with_input_ids(
     return tokenized_inputs
 
 
-def load_code_clippy_github(
+def load_code_clippy(
     preprocessing_fn: Optional[
         Callable[[Dict[str, Any]], Dict[str, Any]]
     ] = None,

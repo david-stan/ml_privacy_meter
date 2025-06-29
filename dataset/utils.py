@@ -11,7 +11,7 @@ from transformers import AutoTokenizer
 
 from datasets import Dataset as HFDataset
 
-from dataset import TextDataset, load_agnews, load_swallow_code, load_code_clippy_github
+from dataset import TextDataset, load_agnews, load_swallow_code, load_code_clippy
 
 
 class InfinitelyIndexableDataset(Dataset):
@@ -119,9 +119,9 @@ def get_dataset(dataset_name: str, data_dir: str, logger: Any, **kwargs: Any) ->
             tokenizer = kwargs.get("tokenizer")
             logger.info("Requesting Code Clippy streaming iterator...")
             if tokenizer is None:
-                code_clippy = load_code_clippy_github(tokenize=False)
+                code_clippy = load_code_clippy(tokenize=False)
             else:
-                code_clippy = load_code_clippy_github(
+                code_clippy = load_code_clippy(
                     tokenize=True,
                     tokenizer=AutoTokenizer.from_pretrained(
                         tokenizer, clean_up_tokenization_spaces=True
@@ -129,7 +129,7 @@ def get_dataset(dataset_name: str, data_dir: str, logger: Any, **kwargs: Any) ->
                 )
 
             logger.info("Downloading Code Clippy train dataset")
-            code_clippy = HFDataset.from_list(list(code_clippy.take(100000)))
+            code_clippy = HFDataset.from_list(list(code_clippy.take(200000)))
             logger.info("Downloading Code Clippy test dataset")
             code_clippy_test = HFDataset.from_list(list(code_clippy.take(1000)))
 
