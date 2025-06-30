@@ -41,7 +41,7 @@ def get_model(model_type: str, dataset_name: str, configs: dict, ignore_peft: bo
     train_configs = configs["train"]
 
     if train_configs.get("peft", None) is None or ignore_peft:
-        return AutoModelForCausalLM.from_pretrained(model_type)
+        return get_base_model(model_type)
     else:
         peft_config = get_peft_model_config(configs)
         orig_model = get_base_model(model_type)

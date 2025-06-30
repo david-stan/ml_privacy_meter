@@ -91,10 +91,10 @@ def get_model_signals(models_list, dataset, configs, logger, is_population=False
     )
     signal_file_name += "_pop.npy" if is_population else ".npy"
     if os.path.exists(
-        f"{configs['run']['log_dir']}/signals/{signal_file_name}",
+        f"outputs/{configs['run']['log_dir']}/signals/{signal_file_name}",
     ):
         signals = np.load(
-            f"{configs['run']['log_dir']}/signals/{signal_file_name}",
+            f"outputs/{configs['run']['log_dir']}/signals/{signal_file_name}",
         )
         expected_size = len(dataset)
         signal_source = "training data size"
@@ -139,7 +139,7 @@ def get_model_signals(models_list, dataset, configs, logger, is_population=False
     signals = np.concatenate(signals, axis=1)
     os.makedirs(f"{configs['run']['log_dir']}/signals", exist_ok=True)
     np.save(
-        f"{configs['run']['log_dir']}/signals/{signal_file_name}",
+        f"outputs/{configs['run']['log_dir']}/signals/{signal_file_name}",
         signals,
     )
     logger.info("Signals saved to disk.")
