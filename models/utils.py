@@ -25,13 +25,12 @@ def get_base_model(model_type: str):
     return AutoModelForCausalLM.from_pretrained(model_type)
 
 
-def get_model(model_type: str, dataset_name: str, configs: dict, ignore_peft: bool = False):
+def get_model(model_type: str, configs: dict, ignore_peft: bool = False):
     """
     Instantiate and return a model based on the given model type and dataset name.
 
     Args:
         model_type (str): Type of the model to be instantiated.
-        dataset_name (str): Name of the dataset the model will be used for.
         configs (dict): Configuration dictionary containing information about the model.
         ignore_peft (bool): Flag to ignore PEFT configuration and return a base model. Default is False.
             Use for loading the existing model from disk.
@@ -39,6 +38,30 @@ def get_model(model_type: str, dataset_name: str, configs: dict, ignore_peft: bo
         torch.nn.Module or PreTrainedModel: An instance of the specified model, ready for training or inference.
     """
     train_configs = configs["train"]
+
+    if train_configs.get("peft", None) is None or ignore_peft:
+        return get_base_model(model_type)
+    else:
+        peft_config = get_peft_model_config(configs)
+        orig_model = get_base_model(model_type)
+        peft_model = get_peft_model(
+            orig_model, peft_config
+        )
+        return peft_model
+
+def get_target_model(model_type: str, configs: dict, ignore_peft: bool = False):
+    """
+    Instantiate and return the target model based on the given model type and dataset name.
+
+    Args:
+        model_type (str): Type of the target model to be instantiated.
+        configs (dict): Configuration dictionary containing information about the model.
+        ignore_peft (bool): Flag to ignore PEFT configuration and return a base model. Default is False.
+            Use for loading the existing model from disk.
+    Returns:
+        torch.nn.Module or PreTrainedModel: An instance of the specified model, ready for training or inference.
+    """
+    train_configs = configs["target"]
 
     if train_configs.get("peft", None) is None or ignore_peft:
         return get_base_model(model_type)
@@ -66,7 +89,7 @@ def load_existing_model(
     model_name = model_metadata["model_name"]
     dataset_name = model_metadata["dataset"]
 
-    model = get_model(model_name, dataset_name, config, ignore_peft=True)
+    model = get_model(model_name, config, ignore_peft=True)
 
     model_checkpoint_extension = os.path.splitext(model_metadata["model_path"])[1]
     if model_checkpoint_extension == ".pkl":
