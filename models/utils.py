@@ -61,9 +61,9 @@ def get_target_model(model_type: str, configs: dict, ignore_peft: bool = False):
     Returns:
         torch.nn.Module or PreTrainedModel: An instance of the specified model, ready for training or inference.
     """
-    train_configs = configs["target"]
+    audit_configs = configs["audit"]
 
-    if train_configs.get("peft", None) is None or ignore_peft:
+    if audit_configs.get("peft", None) is None or ignore_peft:
         return get_base_model(model_type)
     else:
         peft_config = get_peft_model_config(configs)

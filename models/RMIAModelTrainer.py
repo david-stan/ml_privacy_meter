@@ -110,7 +110,7 @@ class RMIAModelTrainer:
             hf_dataset = self.dataset.hf_dataset
             model, train_loss, test_loss = train_transformer(
                 hf_dataset.select(split_info["train"]),
-                get_model(model_name, dataset_name, self.configs),
+                get_model(model_name, self.configs),
                 self.configs,
                 hf_dataset.select(split_info["test"][:1000]),
                 model_idx=split

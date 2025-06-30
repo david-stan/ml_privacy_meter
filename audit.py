@@ -8,6 +8,7 @@ from sklearn.metrics import roc_curve, auc
 from torch.utils.data import Subset
 
 from attacks import tune_offline_a, run_rmia
+from get_signals import get_model_signals, get_target_model_signals
 from visualize import plot_roc, plot_roc_log
 
 
@@ -155,6 +156,50 @@ def audit_models(
         )
 
     return mia_score_list, membership_list
+
+
+def audit_model(
+    report_dir,
+    target_model,
+    target_dataset,
+    reference_signals,
+    population_signals,
+    logger,
+    configs,
+):
+    """
+    Audit target model(s) using a Membership Inference Attack algorithm.
+
+    Args:
+        report_dir (str): Folder to save attack result.
+        target_model (list): Target model for auditing.
+        reference_signals (np.array): Signal value of all samples in all models (target and reference models).
+        population_signals (np.array): Signal value of all population data in all models (target and reference models).
+        logger (logging.Logger): Logger object for the current run.
+        configs (dict): Configs provided by the user.
+
+    Returns:
+        list: List of MIA score arrays for all audited target models.
+        list: List of membership labels for all target models.
+    """
+    signals = get_target_model_signals(target_model, target_dataset, configs, logger)
+
+    mia_score_list = []
+    membership_list = []
+
+    baseline_time = time.time()
+    # mia_scores = run_rmia(
+    #     target_model_idx,
+    #     reference_signals,
+    #     population_signals,
+    # )
+
+    logger.info(
+        "Auditing the privacy risks of the target model costs %0.1f seconds",
+        time.time() - baseline_time,
+    )
+
+    return [] # mia_scores
 
 
 def sample_auditing_dataset(

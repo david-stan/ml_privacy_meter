@@ -98,3 +98,32 @@ def load_dataset(configs: Dict[str, Any], data_dir: str, logger: logging.Logger)
         return dataset, population
     else:
         raise ValueError("num_samples must be less than the number of samples in the dataset.")
+
+def load_target_dataset(configs: Dict[str, Any], data_dir: str, logger: logging.Logger) -> Any:
+    """
+    Load the target dataset based on the configuration.
+
+    Args:
+        configs (Dict[str, Any]): Configuration dictionary.
+        data_dir (str): Directory where the data is stored.
+        logger (logging.Logger): Logger object for logging information.
+
+    Returns:
+        Any: Loaded dataset.
+    """
+    if not configs["audit"].get("tokenize", False):
+        dataset, population = get_dataset(configs["audit"]["auditing_dataset"], data_dir, logger)
+    else:
+        dataset, population = get_dataset(
+            configs["audit"]["auditing_dataset"],
+            data_dir,
+            logger,
+            tokenizer=configs["audit"]["tokenizer"],
+        )
+
+    num_samples = configs["audit"].get("data_size", None)
+    if num_samples is not None and num_samples <= len(dataset):
+        dataset.hf_dataset = dataset.hf_dataset.select(np.arange(num_samples))
+        return dataset, population
+    else:
+        raise ValueError("num_samples must be less than the number of samples in the dataset.")

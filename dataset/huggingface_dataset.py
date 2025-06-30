@@ -68,3 +68,16 @@ class TextDataset(Dataset):
             str: Text at the given index.
         """
         return self.texts[idx]
+
+    def torch_batch(self, batch_size: int):
+        whatever: Dataset = self.hf_dataset.take(100).batch(batch_size)
+
+        def map_fn(d):
+            return {
+                "input_ids": torch.LongTensor(d["input_ids"]),
+                "labels": torch.LongTensor(d["labels"]),
+                "attention_mask": torch.LongTensor(d["attention_mask"]),
+                "text": d["text"]
+            }
+
+        return [map_fn(batch) for batch in whatever]

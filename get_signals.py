@@ -84,12 +84,9 @@ def get_model_signals(models_list, dataset, configs, logger, is_population=False
         signals (np.array): Signal value for all samples in all models
     """
     # Check if signals are available on disk
-    signal_file_name = (
-        f"{configs['audit']['algorithm'].lower()}_ramia_signals"
-        if configs.get("ramia", None)
-        else f"{configs['audit']['algorithm'].lower()}_signals"
-    )
+    signal_file_name = f"rmia_signals"
     signal_file_name += "_pop.npy" if is_population else ".npy"
+
     if os.path.exists(
         f"outputs/{configs['run']['log_dir']}/signals/{signal_file_name}",
     ):
@@ -97,7 +94,6 @@ def get_model_signals(models_list, dataset, configs, logger, is_population=False
             f"outputs/{configs['run']['log_dir']}/signals/{signal_file_name}",
         )
         expected_size = len(dataset)
-        signal_source = "training data size"
 
         if signals.shape[0] == expected_size:
             logger.info("Signals loaded from disk successfully.")
@@ -105,7 +101,7 @@ def get_model_signals(models_list, dataset, configs, logger, is_population=False
         else:
             logger.warning(
                 f"Signals shape ({signals.shape[0]}) does not match the expected size ({expected_size}). "
-                f"This mismatch is likely due to a change in the {signal_source}."
+                f"This mismatch is likely due to a change in the training data size."
             )
             logger.info("Ignoring the signals on disk and recomputing.")
 
@@ -137,10 +133,98 @@ def get_model_signals(models_list, dataset, configs, logger, is_population=False
         )
 
     signals = np.concatenate(signals, axis=1)
-    os.makedirs(f"{configs['run']['log_dir']}/signals", exist_ok=True)
+    os.makedirs(f"outputs/{configs['run']['log_dir']}/signals", exist_ok=True)
     np.save(
         f"outputs/{configs['run']['log_dir']}/signals/{signal_file_name}",
         signals,
     )
     logger.info("Signals saved to disk.")
+    return signals
+
+def get_target_model_signals(model, dataset, configs, logger, is_population=False):
+    """Function to get models' signals (softmax, loss, logits) on a given dataset.
+
+    Args:
+        model (hf.Model): Model for computing signals from.
+        dataset (torchvision.datasets): The whole dataset.
+        configs (dict): Configurations of the tool.
+        logger (logging.Logger): Logger object for the current run.
+        is_population (bool): Whether the signals are computed on population data.
+
+    Returns:
+        signals (np.array): Signal value for all samples in all models
+    """
+    # Check if signals are available on disk
+    signal_file_name = "target_rmia_signals"
+    signal_file_name += "_pop.npy" if is_population else ".npy"
+
+    if os.path.exists(
+        f"outputs/{configs['run']['log_dir']}/signals/{signal_file_name}",
+    ):
+        signals = np.load(
+            f"outputs/{configs['run']['log_dir']}/signals/{signal_file_name}",
+        )
+        expected_size = len(dataset)
+
+        if signals.shape[0] == expected_size:
+            logger.info("Signals loaded from disk successfully.")
+            return signals
+        else:
+            logger.warning(
+                f"Signals shape ({signals.shape[0]}) does not match the expected size ({expected_size}). "
+                f"This mismatch is likely due to a change in the data size."
+            )
+            logger.info("Ignoring the signals on disk and recomputing.")
+
+    batch_size = configs["audit"]["batch_size"]  # Batch size used for inferring signals
+    model_name = configs["audit"]["model_name"]  # Algorithm used for training models
+    device = configs["audit"]["device"]  # GPU device used for inferring signals
+    if "tokenizer" in configs["audit"].keys():
+        tokenizer = AutoTokenizer.from_pretrained(
+            configs["audit"]["tokenizer"], clean_up_tokenization_spaces=True
+        )
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+        pad_token_id = tokenizer.pad_token_id
+    else:
+        pad_token_id = None
+
+    batched_samples = dataset.torch_batch(batch_size)
+
+    model.eval()
+    softmax_list = []
+    for batch in tqdm(
+            batched_samples,
+            total=len(batched_samples),
+            desc="Computing softmax",
+    ):
+        with torch.no_grad():
+            pred = model.forward(
+                batch["input_ids"],
+                attention_mask=batch["attention_mask"]
+            )
+
+        logits = pred.logits
+        log_probs = torch.log_softmax(logits, dim=-1)
+        true_class_log_probs = log_probs.gather(2, batch["labels"]).squeeze(-1)
+        # Mask out padding tokens
+        mask = (
+            batch["labels"] != pad_token_id
+            if pad_token_id is not None
+            else torch.ones_like(batch["labels"], dtype=torch.bool)
+        )
+        true_class_log_probs = true_class_log_probs * mask
+        sequence_probs = torch.exp(
+            true_class_log_probs.sum(1) / mask.sum(1)
+        )
+        softmax_list.append(sequence_probs.to("cpu").view(-1, 1))
+
+    signals = np.concatenate(softmax_list)
+    os.makedirs(f"outputs/{configs['run']['log_dir']}/signals", exist_ok=True)
+    np.save(
+        f"outputs/{configs['run']['log_dir']}/signals/{signal_file_name}",
+        signals,
+    )
+    logger.info("Target signals saved to disk.")
+
     return signals
