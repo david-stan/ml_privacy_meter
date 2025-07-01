@@ -189,8 +189,9 @@ def get_target_model_signals(model, dataset, configs, logger, is_population=Fals
     else:
         pad_token_id = None
 
-    batched_samples = dataset.torch_batch(batch_size)
+    batched_samples = dataset.torch_batch(batch_size, device=device)
 
+    model.to(device)
     model.eval()
     softmax_list = []
     for batch in tqdm(
@@ -201,21 +202,16 @@ def get_target_model_signals(model, dataset, configs, logger, is_population=Fals
         with torch.no_grad():
             pred = model.forward(
                 batch["input_ids"],
-                attention_mask=batch["attention_mask"]
+                attention_mask=batch["attention_mask"],
             )
 
         logits = pred.logits
         log_probs = torch.log_softmax(logits, dim=-1)
-        true_class_log_probs = log_probs.gather(2, batch["labels"]).squeeze(-1)
+        true_class_log_probs = log_probs.gather(2, batch["labels"].unsqueeze(-1)).squeeze(-1)
         # Mask out padding tokens
-        mask = (
-            batch["labels"] != pad_token_id
-            if pad_token_id is not None
-            else torch.ones_like(batch["labels"], dtype=torch.bool)
-        )
-        true_class_log_probs = true_class_log_probs * mask
+        true_class_log_probs = true_class_log_probs * batch["attention_mask"]
         sequence_probs = torch.exp(
-            true_class_log_probs.sum(1) / mask.sum(1)
+            true_class_log_probs.sum(1) / batch["attention_mask"].sum(1)
         )
         softmax_list.append(sequence_probs.to("cpu").view(-1, 1))
 
