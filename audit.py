@@ -8,7 +8,7 @@ from sklearn.metrics import roc_curve, auc
 from torch.utils.data import Subset
 
 from attacks import tune_offline_a, run_rmia
-from visualize import plot_roc, plot_roc_log
+from visualize import plot_roc, plot_roc_log, save_scored_dataset
 
 
 def compute_attack_results(mia_scores, target_memberships):
@@ -38,13 +38,14 @@ def compute_attack_results(mia_scores, target_memberships):
     }
 
 
-def get_audit_results(report_dir, model_idx, mia_scores, target_memberships, logger):
+def get_audit_results(report_dir, model_idx, auditing_dataset, mia_scores, target_memberships, logger):
     """
     Generate and save ROC plots for attacking a single model.
 
     Args:
         report_dir (str): Folder for saving the ROC plots.
         model_idx (int): Index of model subjected to the attack.
+        auditing_dataset (Sample): Dataset of samples.
         mia_scores (np.array): MIA score computed by the attack.
         target_memberships (np.array): Membership of samples in the training set of target model.
         logger (logging.Logger): Logger object for the current run.
@@ -85,12 +86,22 @@ def get_audit_results(report_dir, model_idx, mia_scores, target_memberships, log
         scores=mia_scores.ravel(),
         memberships=target_memberships.ravel(),
     )
+
+    save_scored_dataset(
+        f"{report_dir}/dataset_mia_score_{model_idx}.csv",
+        auditing_dataset,
+        mia_scores,
+        target_memberships,
+        logger
+    )
+
     return attack_result
 
 
 def audit_models(
     report_dir,
     target_model_indices,
+    auditing_dataset,
     all_signals,
     population_signals,
     all_memberships,
@@ -104,6 +115,7 @@ def audit_models(
     Args:
         report_dir (str): Folder to save attack result.
         target_model_indices (list): List of the target model indices.
+        auditing_dataset (Sample): Dataset of samples.
         all_signals (np.array): Signal value of all samples in all models (target and reference models).
         population_signals (np.array): Signal value of all population data in all models (target and reference models).
         all_memberships (np.array): Membership matrix for all models.
@@ -145,7 +157,7 @@ def audit_models(
         membership_list.append(target_memberships.copy())
 
         _ = get_audit_results(
-            report_dir, target_model_idx, mia_scores, target_memberships, logger
+            report_dir, target_model_idx, auditing_dataset, mia_scores, target_memberships, logger
         )
 
         logger.info(

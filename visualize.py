@@ -1,6 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
-import textwrap
+import pandas as pd
+
+
 
 
 def plot_roc(fpr_list, tpr_list, roc_auc, path):
@@ -73,3 +75,16 @@ def plot_roc_log(fpr_list, tpr_list, roc_auc, path):
         dpi=1000,
     )
     plt.clf()
+
+
+def save_scored_dataset(path, auditing_dataset, mia_score, target_membership, logger):
+    df = pd.DataFrame(
+        {
+            "text": [auditing_dataset.dataset.get_text(i) for i in auditing_dataset.indices],
+            "score": mia_score,
+            "target_membership": target_membership,
+        }
+    )
+    df.to_csv(path, mode='w', index=False)
+
+    logger.info("Scored auditing dataset saved to {}".format(path))
