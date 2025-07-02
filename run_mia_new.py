@@ -120,6 +120,7 @@ def main():
     mia_score_list, membership_list = audit_models(
         f"{directories['report_dir']}/exp",
         target_model_indices,
+        auditing_dataset,
         signals,
         population_signals,
         auditing_membership,
